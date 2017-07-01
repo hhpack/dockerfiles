@@ -1,0 +1,21 @@
+#
+# Please replace [GITHUB_TOKEN]
+#
+language: generic
+sudo: required
+dist: trusty
+env:
+  matrix:
+    secure: [GITHUB_TOKEN]
+services:
+- docker
+before_script:
+- printenv | awk -F= '{if ($1 ~ /^(TRAVIS|GITHUB)/) print $1"="$2}' > .env
+- docker-compose build
+script:
+- docker-compose run web typesafety --review
+- docker-compose run web composer test
+matrix:
+  fast_finish: true
+notifications:
+  email: false
