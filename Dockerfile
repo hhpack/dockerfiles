@@ -1,6 +1,6 @@
 FROM holyshared/hhvm:latest
-ENV DEBIAN_FRONTEND noninteractive
 MAINTAINER Noritaka Horio <holy.shared.design@gmail.com>
+ARG DEBIAN_FRONTEND=noninteractive
 RUN sudo apt-get update && \
   sudo apt-get -y install sudo m4 opam libssl-dev pkg-config && \
   sudo rm -rf /var/lib/apt/lists/*
