@@ -1,7 +1,7 @@
 FROM holyshared/hhvm:latest
 LABEL maintainer "Noritaka Horio <holy.shared.design@gmail.com>"
 ARG DEBIAN_FRONTEND=noninteractive
-ARG COMPILER_VERSION=4.06.1
+ARG COMPILER_VERSION=4.07.0
 RUN sudo apt -y update && \
   sudo apt -y install sudo m4 opam libssl-dev pkg-config && \
   sudo rm -rf /var/lib/apt/lists/*
