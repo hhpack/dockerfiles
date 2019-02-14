@@ -5,14 +5,21 @@ RUN php -r "if (hash_file('sha384', 'composer-setup.php') === '48e3236262b34d309
 RUN php composer-setup.php --filename=composer
 RUN php -r "unlink('composer-setup.php');"
 
-FROM hhvm/hhvm:latest
-LABEL maintainer "Noritaka Horio <holy.shared.design@gmail.com>"
+FROM hhvm/hhvm:latest as typesafety-env
 ARG DEBIAN_FRONTEND=noninteractive
 ARG COMPILER_VERSION=4.07.0
-COPY --from=composer-env /tmp/composer /usr/local/bin/composer
 RUN apt -y update && \
-  apt -y install m4 opam libssl-dev pkg-config php-cli && \
+  apt -y install m4 opam libssl-dev pkg-config && \
   rm -rf /var/lib/apt/lists/*
 RUN opam init -y --root=/tmp/typesafety && opam switch --root=/tmp/typesafety ${COMPILER_VERSION}
 RUN opam pin add -y --root=/tmp/typesafety typesafety https://github.com/hhpack/typesafety-cli.git
-RUN cp /tmp/typesafety/${COMPILER_VERSION}/bin/typesafety /usr/local/bin && rm -rf /tmp/typesafety
+RUN cp /tmp/typesafety/${COMPILER_VERSION}/bin/typesafety /tmp/typesafety-bin
+
+FROM hhvm/hhvm:latest
+LABEL maintainer "Noritaka Horio <holy.shared.design@gmail.com>"
+ARG DEBIAN_FRONTEND=noninteractive
+COPY --from=composer-env /tmp/composer /usr/local/bin/composer
+COPY --from=typesafety-env /tmp/typesafety-bin /usr/local/bin/typesafety
+RUN apt -y update && \
+  apt -y install libssl-dev pkg-config php-cli && \
+  rm -rf /var/lib/apt/lists/*
