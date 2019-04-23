@@ -5,21 +5,20 @@ RUN php -r "if (hash_file('sha384', 'composer-setup.php') === '48e3236262b34d309
 RUN php composer-setup.php --filename=composer
 RUN php -r "unlink('composer-setup.php');"
 
-FROM hhvm/hhvm:3.30-lts-latest as typesafety-env
-ARG DEBIAN_FRONTEND=noninteractive
-ARG COMPILER_VERSION=4.07.0
-RUN apt -y update && \
-  apt -y install m4 opam libssl-dev pkg-config && \
-  rm -rf /var/lib/apt/lists/*
-RUN opam init -y --root=/tmp/typesafety && opam switch --root=/tmp/typesafety ${COMPILER_VERSION}
-RUN opam pin add -y --root=/tmp/typesafety typesafety https://github.com/hhpack/typesafety-cli.git
-RUN cp /tmp/typesafety/${COMPILER_VERSION}/bin/typesafety /tmp/typesafety-bin
-
 FROM hhvm/hhvm:3.30-lts-latest
 LABEL maintainer "Noritaka Horio <holy.shared.design@gmail.com>"
 ARG DEBIAN_FRONTEND=noninteractive
+ARG COMPILER_VERSION=4.07.1
 COPY --from=composer-env /tmp/composer /usr/local/bin/composer
-COPY --from=typesafety-env /tmp/typesafety-bin /usr/local/bin/typesafety
 RUN apt -y update && \
-  apt -y install libssl-dev pkg-config php-cli && \
+  apt -y install m4 pkg-config php-cli rsync darcs mercurial libgmp-dev unzip && \
   rm -rf /var/lib/apt/lists/*
+RUN add-apt-repository -y ppa:attente/test && \
+  apt -y update && \
+  apt -y install bubblewrap && \
+  rm -rf /var/lib/apt/lists/*
+RUN curl -sL https://raw.githubusercontent.com/ocaml/opam/master/shell/install.sh > /tmp/install.sh
+RUN echo "/usr/local/bin" | sh /tmp/install.sh
+RUN opam init -y --root=/tmp/typesafety --disable-sandboxing && opam switch create --root=/tmp/typesafety ${COMPILER_VERSION} 
+RUN opam pin add -y --root=/tmp/typesafety typesafety https://github.com/hhpack/typesafety-cli.git
+RUN ln -s /tmp/typesafety/${COMPILER_VERSION}/bin/typesafety /usr/local/bin/typesafety
