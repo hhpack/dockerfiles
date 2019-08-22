@@ -8,7 +8,7 @@ RUN php -r "unlink('composer-setup.php');"
 FROM hhvm/hhvm:latest
 LABEL maintainer "Noritaka Horio <holy.shared.design@gmail.com>"
 ARG DEBIAN_FRONTEND=noninteractive
-ARG COMPILER_VERSION=4.07.1
+ARG COMPILER_VERSION=4.08.1
 COPY --from=composer-env /tmp/composer /usr/local/bin/composer
 RUN apt -y update && \
   apt -y install m4 pkg-config php-cli rsync darcs mercurial bubblewrap libgmp-dev && \
